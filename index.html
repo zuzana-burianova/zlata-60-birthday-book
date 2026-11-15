@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Elegant Book</title>
+<title>Elegantní kniha</title>
 <style>
   @font-face {
     font-family: 'Relief SingleLine';
@@ -31,9 +31,15 @@
   .book {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 10mm;
     padding: 10mm 0;
+  }
+
+  @media (min-width: 1700px) {
+    .book {
+      align-items: center;
+    }
   }
 
   .spread {
@@ -186,31 +192,31 @@
 
   .comment-marker {
     position: absolute;
-    width: 6mm;
-    height: 6mm;
-    margin: -3mm 0 0 -3mm;
+    width: 11mm;
+    height: 11mm;
+    margin: -5.5mm 0 0 -5.5mm;
     border-radius: 50%;
     background: #a83232;
-    border: 0.8mm solid #eee9c3;
+    border: 1.4mm solid #eee9c3;
     cursor: pointer;
     z-index: 10;
-    box-shadow: 0 0.6mm 2mm rgba(0,0,0,0.4);
+    box-shadow: 0 1mm 3mm rgba(0,0,0,0.4);
   }
 
   .comment-bubble {
     position: absolute;
     z-index: 20;
     background: #fffef8;
-    border: 2px solid #4a4326;
-    border-radius: 4mm;
-    padding: 6mm 8mm 6mm 6mm;
-    width: 116mm;
+    border: 3px solid #4a4326;
+    border-radius: 5mm;
+    padding: 9mm 11mm 9mm 9mm;
+    width: 160mm;
     font-family: Georgia, serif;
-    font-size: 16pt;
+    font-size: 23pt;
     line-height: 1.4;
     color: #2a2516;
-    box-shadow: 0 2mm 6mm rgba(0,0,0,0.3);
-    margin: -16mm 0 0 8mm;
+    box-shadow: 0 3mm 8mm rgba(0,0,0,0.3);
+    margin: -22mm 0 0 11mm;
   }
 
   .comment-bubble.hidden {
@@ -218,9 +224,9 @@
   }
 
   .comment-bubble .comment-date {
-    font-size: 14pt;
+    font-size: 19pt;
     color: #9a9470;
-    margin-bottom: 3mm;
+    margin-bottom: 4mm;
   }
 
   .comment-bubble .comment-text {
@@ -230,10 +236,10 @@
 
   .comment-bubble .comment-close {
     position: absolute;
-    top: 1mm;
-    right: 3mm;
+    top: 1.5mm;
+    right: 4mm;
     cursor: pointer;
-    font-size: 20pt;
+    font-size: 28pt;
     color: #9a9470;
     line-height: 1;
   }
@@ -245,14 +251,14 @@
   .comment-input-box {
     position: absolute;
     z-index: 30;
-    width: 116mm;
-    margin: -16mm 0 0 -58mm;
+    width: 160mm;
+    margin: -22mm 0 0 -80mm;
   }
 
   .comment-input-box textarea {
     width: 100%;
     font-family: Georgia, serif;
-    font-size: 16pt;
+    font-size: 23pt;
     padding: 4mm;
     border: 2px solid #4a4326;
     border-radius: 3mm;
@@ -441,7 +447,7 @@
 
         bubble.querySelector('.comment-close').addEventListener('click', function (e) {
           e.stopPropagation();
-          if (confirm('Delete this comment?')) {
+          if (confirm('Smazat komentář?')) {
             sb.from('comments').delete().eq('id', comment.id).then(function () {
               marker.remove();
               bubble.remove();
@@ -478,7 +484,7 @@
         box.className = 'comment-input-box';
         box.style.left = xPct + '%';
         box.style.top = yPct + '%';
-        box.innerHTML = '<textarea rows="3" placeholder="Add a comment..."></textarea>';
+        box.innerHTML = '<textarea rows="3" placeholder="Přidat komentář..."></textarea>';
         pageEl.appendChild(box);
         var textarea = box.querySelector('textarea');
         textarea.focus();
@@ -498,7 +504,7 @@
               y: yPct,
               text: text
             }).select().single().then(function (res) {
-              if (res.error) { console.error(res.error); alert('Could not save comment.'); return; }
+              if (res.error) { console.error(res.error); alert('Komentář se nepodařilo uložit.'); return; }
               renderMarker(pageEl, res.data);
             });
           } else if (ev.key === 'Escape') {
