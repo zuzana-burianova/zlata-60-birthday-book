@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Elegant Book</title>
+<style>
+  @font-face {
+    font-family: 'Relief SingleLine';
+    src: url('ReliefSingleLineOutline-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  :root {
+    --page-bg: #eee9c3;
+    --page-w: 210mm;
+    --page-h: 148mm;
+    --margin: 10mm;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #888;
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+
+  .book {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10mm;
+    padding: 10mm 0;
+  }
+
+  .spread {
+    display: flex;
+    width: calc(var(--page-w) * 2);
+    height: var(--page-h);
+    box-shadow: 0 2mm 6mm rgba(0,0,0,0.3);
+  }
+
+  .page {
+    width: var(--page-w);
+    height: var(--page-h);
+    background: var(--page-bg);
+    position: relative;
+  }
+
+  .page.empty {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .page-content {
+    position: absolute;
+    inset: var(--margin);
+  }
+
+  .page img.page-content {
+    inset: auto;
+    top: var(--margin);
+    left: var(--margin);
+    width: calc(100% - 2 * var(--margin));
+    height: calc(100% - 2 * var(--margin));
+  }
+
+  .page img.cover {
+    object-fit: cover;
+  }
+
+  .page img.house {
+    object-fit: contain;
+  }
+
+  .date-block {
+    margin-top: calc(20mm - 1.6em);
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    font-family: 'Relief SingleLine', sans-serif;
+    font-size: 20pt;
+    line-height: 1.6;
+    color: #4a4326;
+    letter-spacing: 0.05em;
+  }
+
+  .date-block .circle {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .date-block .gap-divider {
+    height: 3.2em;
+    display: flex;
+    align-items: center;
+  }
+
+  .date-block .gap-divider .circle {
+    margin: 0 1cm;
+  }
+
+  .date-block .divider-seg {
+    flex: 1;
+    height: 1px;
+    background: #4a4326;
+  }
+
+  .date-block .gap-blank {
+    height: 1.6em;
+  }
+
+  .date-block .line.fit {
+    align-self: flex-start;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .page14-overlay {
+    position: absolute;
+    top: var(--margin);
+    left: var(--margin);
+    width: calc(100% - 2 * var(--margin));
+    height: calc(100% - 2 * var(--margin));
+  }
+
+  .page14-overlay .star {
+    fill: #4a4326;
+  }
+
+  .page14-overlay .orion-line {
+    stroke: #4a4326;
+    stroke-width: 0.3;
+    fill: none;
+  }
+
+  .page14-overlay .orion-star {
+    fill: #4a4326;
+  }
+
+  .source-list {
+    font-family: 'Relief SingleLine', sans-serif;
+    font-size: 13pt;
+    line-height: 1.5;
+    color: #4a4326;
+    text-align: left;
+  }
+
+  .source-list .entry {
+    margin-bottom: 4mm;
+    word-break: break-all;
+  }
+
+  .source-list .entry .link {
+    font-size: 9pt;
+  }
+
+  .text-relief {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: left;
+    font-family: 'Relief SingleLine', sans-serif;
+    font-size: 20pt;
+    line-height: 1.6;
+    color: #4a4326;
+  }
+
+  @media print {
+    @page {
+      size: 420mm 148mm;
+      margin: 0;
+    }
+    html, body { background: none; }
+    .book { gap: 0; padding: 0; }
+    .spread {
+      box-shadow: none;
+      page-break-after: always;
+    }
+    .page.empty { visibility: hidden; }
+    .comment-marker, .comment-bubble, .comment-input-box { display: none !important; }
+  }
+
+  .comment-marker {
+    position: absolute;
+    width: 3mm;
+    height: 3mm;
+    margin: -1.5mm 0 0 -1.5mm;
+    border-radius: 50%;
+    background: #a83232;
+    border: 0.4mm solid #eee9c3;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 0.3mm 1mm rgba(0,0,0,0.4);
+  }
+
+  .comment-bubble {
+    position: absolute;
+    z-index: 20;
+    background: #fffef8;
+    border: 1px solid #4a4326;
+    border-radius: 2mm;
+    padding: 3mm 4mm 3mm 3mm;
+    width: 58mm;
+    font-family: Georgia, serif;
+    font-size: 8pt;
+    line-height: 1.4;
+    color: #2a2516;
+    box-shadow: 0 1mm 3mm rgba(0,0,0,0.3);
+    margin: -8mm 0 0 4mm;
+  }
+
+  .comment-bubble.hidden {
+    display: none;
+  }
+
+  .comment-bubble .comment-date {
+    font-size: 7pt;
+    color: #9a9470;
+    margin-bottom: 1.5mm;
+  }
+
+  .comment-bubble .comment-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .comment-bubble .comment-close {
+    position: absolute;
+    top: 0.5mm;
+    right: 1.5mm;
+    cursor: pointer;
+    font-size: 10pt;
+    color: #9a9470;
+    line-height: 1;
+  }
+
+  .comment-bubble .comment-close:hover {
+    color: #a83232;
+  }
+
+  .comment-input-box {
+    position: absolute;
+    z-index: 30;
+    width: 58mm;
+    margin: -8mm 0 0 -29mm;
+  }
+
+  .comment-input-box textarea {
+    width: 100%;
+    font-family: Georgia, serif;
+    font-size: 8pt;
+    padding: 2mm;
+    border: 1px solid #4a4326;
+    border-radius: 1.5mm;
+    resize: none;
+    box-sizing: border-box;
+    background: #fffef8;
+    color: #2a2516;
+  }
+</style>
+</head>
+<body>
+<div class="book">
+
+  <div class="spread">
+    <div class="page" id="page-0"><img class="page-content cover" src="60-05-cream.png" alt=""></div>
+    <div class="page" id="page-1"><img class="page-content cover" src="60-04-cream.png" alt=""></div>
+  </div>
+
+  <div class="spread">
+    <div class="page" id="page-2"></div>
+    <div class="page" id="page-3"><div class="page-content text-relief">Milá Zlato,<br>k Tvým narozeninám Ti přejeme hodně zdraví, lásky a radosti ze života, a pro zábavu, odpočinek, poznání i nové velké zážitky pro Tebe máme dárečky od celé rodiny.<br>Tak si je hezky užij!</div></div>
+  </div>
+
+  <div class="spread">
+    <div class="page" id="page-4"><img class="page-content house" src="house.png" alt=""></div>
+    <div class="page" id="page-5"><div class="page-content date-block">
+      <div class="line">22.11.2026 <span class="circle">⚬</span> 19:00</div>
+      <div class="gap-divider" id="gap-divider-5"><span class="divider-seg"></span><span class="circle">⚬</span><span class="divider-seg"></span></div>
+      <div class="line"><span id="gap-text-5">Divadelní projekt Pomezí: "Dům v jabloních"</span></div>
+      <div class="gap-blank"></div>
+      <div class="line fit" id="gap-text-5b">Ponoř se do napínavého příběhu a&nbsp;zažij imerzivní inscenaci ze 30. let odehrávající se v&nbsp;interiéru a&nbsp;zahradě Winternitzovy vily.</div>
+    </div></div>
+  </div>
+
+  <div class="spread">
+    <div class="page" id="page-6"><img class="page-content house" src="edinburgh.png" alt=""></div>
+    <div class="page" id="page-7"><div class="page-content date-block">
+      <div class="line">4.12.2026 – 7.12.2026</div>
+      <div class="gap-divider" id="gap-divider-7"><span class="divider-seg"></span><span class="circle">⚬</span><span class="divider-seg"></span></div>
+      <div class="line fit" id="gap-text-7a">Předvánoční výlet do Edinburghu s&nbsp;Dádou</div>
+      <div class="gap-blank"></div>
+      <div class="line fit" id="gap-text-7">Odlož starosti a zažeň všechny chmury a nech se unášet kouzelnou atmosférou adventního Edinburghu.</div>
+    </div></div>
+  </div>
+
+  <div class="spread">
+    <div class="page" id="page-8"><img class="page-content house" src="montanie.png" alt=""></div>
+    <div class="page" id="page-9"><div class="page-content date-block">
+      <div class="line">4.2.2027 – 7.2.2027</div>
+      <div class="gap-divider" id="gap-divider-9"><span class="divider-seg"></span><span class="circle">⚬</span><span class="divider-seg"></span></div>
+      <div class="line fit" id="gap-text-9a">Zimní pobyt na Montanii</div>
+      <div class="gap-blank"></div>
+      <div class="line fit" id="gap-text-9">Užij si čerstvý vzduch v&nbsp;lyžařské stopě Jizerských hor a&nbsp;odpočiň si v&nbsp;pohodlí Resortu Montanie.</div>
+    </div></div>
+  </div>
+
+  <div class="spread">
+    <div class="page" id="page-10"><img class="page-content house" src="massage.png" alt=""></div>
+    <div class="page" id="page-11"><div class="page-content date-block">
+      <div class="line">5.2.2027 / 6.2.2027</div>
+      <div class="gap-divider" id="gap-divider-11"><span class="divider-seg"></span><span class="circle">⚬</span><span class="divider-seg"></span></div>
+      <div class="line fit" id="gap-text-11a">Masáž a wellness na Montanii</div>
+      <div class="gap-blank"></div>
+      <div class="line fit" id="gap-text-11">Dopřej si po sportovním výkonu příjemnou hřejivou masáž, která spolu s&nbsp;návštěvou wellness osvěží Tvé unavené prochladlé tělo.</div>
+    </div></div>
+  </div>
+
+  <div class="spread">
+    <div class="page" id="page-12"><img class="page-content house" src="kirkjufell.png" alt=""></div>
+    <div class="page" id="page-13"><div class="page-content date-block">
+      <div class="line">4.6.2027 – 14.6.2027</div>
+      <div class="gap-divider" id="gap-divider-13"><span class="divider-seg"></span><span class="circle">⚬</span><span class="divider-seg"></span></div>
+      <div class="line fit" id="gap-text-13a">Výlet na Island</div>
+      <div class="gap-blank"></div>
+      <div class="line fit" id="gap-text-13">Vydej se na daleko na sever za poznáním Islandu a&nbsp;všech krás jeho nádherné a&nbsp;divoké přírody.</div>
+    </div></div>
+  </div>
+
+  <div class="spread">
+    <div class="page" id="page-14"><svg class="page14-overlay" viewBox="0 0 190 128" preserveAspectRatio="none">
+      <g class="star"><circle cx="120.9" cy="5.1" r="0.5"/> <circle cx="47.5" cy="19.3" r="0.3"/> <circle cx="127.9" cy="112.6" r="0.3"/> <circle cx="111.8" cy="5.9" r="0.3"/> <circle cx="42.7" cy="64.7" r="0.4"/> <circle cx="135.2" cy="89.0" r="0.7"/> <circle cx="65.3" cy="21.3" r="0.6"/> <circle cx="21.0" cy="49.1" r="0.6"/> <circle cx="159.6" cy="76.9" r="0.25"/> <circle cx="117.0" cy="108.9" r="0.4"/> <circle cx="55.8" cy="11.9" r="0.4"/> <circle cx="126.7" cy="89.0" r="0.3"/> <circle cx="115.3" cy="23.2" r="0.4"/> <circle cx="32.4" cy="49.1" r="0.4"/> <circle cx="129.3" cy="106.5" r="0.25"/> <circle cx="44.6" cy="6.0" r="0.6"/> <circle cx="76.6" cy="10.2" r="0.6"/> <circle cx="121.6" cy="19.7" r="0.35"/> <circle cx="110.7" cy="113.3" r="0.7"/> <circle cx="30.4" cy="21.8" r="0.7"/> <circle cx="112.9" cy="49.7" r="0.8"/> <circle cx="100.4" cy="122.4" r="0.25"/> <circle cx="128.5" cy="16.2" r="0.5"/> <circle cx="31.4" cy="2.4" r="0.5"/> <circle cx="182.8" cy="96.5" r="0.3"/> <circle cx="115.3" cy="21.0" r="0.35"/> <circle cx="102.3" cy="98.5" r="0.25"/> <circle cx="113.4" cy="62.6" r="0.3"/> <circle cx="174.8" cy="111.0" r="0.5"/> <circle cx="46.5" cy="31.9" r="0.3"/> <circle cx="17.9" cy="62.3" r="0.35"/> <circle cx="39.4" cy="40.7" r="0.6"/> <circle cx="43.8" cy="43.9" r="0.4"/> <circle cx="111.4" cy="2.9" r="0.25"/> <circle cx="15.2" cy="31.5" r="0.8"/> <circle cx="41.8" cy="18.4" r="0.8"/> <circle cx="78.5" cy="109.1" r="0.3"/> <circle cx="22.3" cy="25.8" r="0.8"/> <circle cx="28.1" cy="24.8" r="0.8"/> <circle cx="162.2" cy="70.2" r="0.25"/> <circle cx="182.2" cy="116.9" r="0.4"/> <circle cx="76.6" cy="9.3" r="0.7"/> <circle cx="2.4" cy="50.4" r="0.8"/> <circle cx="147.7" cy="84.1" r="0.8"/> <circle cx="30.8" cy="38.8" r="0.25"/> <circle cx="109.7" cy="69.2" r="0.6"/> <circle cx="16.9" cy="25.0" r="0.3"/> <circle cx="127.6" cy="31.2" r="0.3"/> <circle cx="177.1" cy="72.6" r="0.25"/> <circle cx="117.2" cy="54.0" r="0.6"/> <circle cx="46.4" cy="51.1" r="0.5"/> <circle cx="26.6" cy="45.3" r="0.3"/> <circle cx="157.1" cy="89.2" r="0.25"/> <circle cx="126.2" cy="70.8" r="0.3"/> <circle cx="176.6" cy="18.7" r="0.3"/></g>
+      <image href="observatory.png" x="0" y="60" width="97" height="68" preserveAspectRatio="xMinYMax meet"/>
+      <g class="orion" transform="translate(135,4)">
+        <path class="orion-line" d="M29,5 L14,22 M29,5 L40,20 M14,22 L22,34 M40,20 L36,40 M22,34 L29,37 L36,40 M14,22 L18,58 M40,20 L42,60 M18,58 L42,60"/>
+        <circle class="orion-star" cx="29" cy="5" r="0.9"/>
+        <circle class="orion-star" cx="14" cy="22" r="1.8"/>
+        <circle class="orion-star" cx="40" cy="20" r="1.4"/>
+        <circle class="orion-star" cx="22" cy="34" r="1.0"/>
+        <circle class="orion-star" cx="29" cy="37" r="1.1"/>
+        <circle class="orion-star" cx="36" cy="40" r="1.0"/>
+        <circle class="orion-star" cx="18" cy="58" r="1.3"/>
+        <circle class="orion-star" cx="42" cy="60" r="1.9"/>
+      </g>
+    </svg></div>
+    <div class="page" id="page-15"><div class="page-content date-block">
+      <div class="line">termín dle dohody</div>
+      <div class="gap-divider" id="gap-divider-15"><span class="divider-seg"></span><span class="circle">⚬</span><span class="divider-seg"></span></div>
+      <div class="line fit" id="gap-text-15a">Individuální prohlídka Štefánikovy hvězdárny</div>
+      <div class="gap-blank"></div>
+      <div class="line fit" id="gap-text-15">Zažij kouzelnou atmosféru Štefánikovy hvězdárny otevřenou jen pro Tebe a&nbsp;odhal všechna tajemství noční oblohy s&nbsp;profesionálním astronomem po boku.</div>
+    </div></div>
+  </div>
+
+  <div class="spread">
+    <div class="page" id="page-17"><div class="page-content date-block">
+      <div class="line">31.7.2027 – 4.8.2027</div>
+      <div class="gap-divider" id="gap-divider-17"><span class="divider-seg"></span><span class="circle">⚬</span><span class="divider-seg"></span></div>
+      <div class="line fit" id="gap-text-17a">Egypt a&nbsp;úplné zatmění Slunce</div>
+      <div class="gap-blank"></div>
+      <div class="line fit" id="gap-text-17">Užij si koupání v&nbsp;průzračném moři s&nbsp;bohatým podmořským životem, nech se hýčkat v&nbsp;hotelu přímo u&nbsp;moře, a&nbsp;uprostřed toho všeho si v&nbsp;zemi pyramid a&nbsp;faraonů naplno užij tajemný prožitek několik minut trvajícího úplného zatmění Slunce.</div>
+    </div></div>
+    <div class="page" id="page-16"><img class="page-content house" src="eclipse.png" alt=""></div>
+  </div>
+
+  <div class="spread">
+    <div class="page" id="page-18"><div class="page-content source-list">
+      <div class="entry">1. Wallace Monument, Edinburgh<br><span class="link">https://www.discoverbritain.com/_gatsby/file/39d07258fcffe338dddc4e4862f237f9/2438_visitscotland_26625200220-2-1024x684.jpg?imwidth=1440</span></div>
+      <div class="entry">2. Montanie chalet<br><span class="link">https://d48-a.sdn.cz/d_48/c_img_oW_A/nO1SBfAluiUs1XttCVSGaE/43f1.jpeg?fl=res,2200,2200,1</span></div>
+      <div class="entry">3. Massage spa<br><span class="link">https://prerovsky.rej.cz/images/var/prerov/article/2023/08/headlineView/masseur-doing-massaging-backbone-woman-spa-salon.jpeg</span></div>
+      <div class="entry">4. Kirkjufell Mountain<br><span class="link">https://traveladdicts.net/wp-content/uploads/2022/02/Kirkjufell-Mountain-Iceland.jpg.webp</span></div>
+      <div class="entry">5. Štefánik Observatory<br><span class="link">https://cdn.praguecitytourism.city/2024/12/28114612/323_stefanik-nocni-planetum.jpg</span></div>
+      <div class="entry">6. Orion constellation<br><span class="link">https://www.shutterstock.com/image-vector/starry-sky-constellation-orion-science-600w-2416253517.jpg</span></div>
+      <div class="entry">7. Solar eclipse<br><span class="link">https://media.newyorker.com/photos/660fe3deaba0b51c65382288/master/pass/Galchen-Eclipse.jpg</span></div>
+    </div></div>
+    <div class="page empty"></div>
+  </div>
+
+</div>
+  <script>
+    document.fonts.ready.then(function() {
+      [
+        {divider: 'gap-divider-5', texts: ['gap-text-5', 'gap-text-5b']},
+        {divider: 'gap-divider-7', texts: ['gap-text-7a', 'gap-text-7']},
+        {divider: 'gap-divider-9', texts: ['gap-text-9a', 'gap-text-9']},
+        {divider: 'gap-divider-11', texts: ['gap-text-11a', 'gap-text-11']},
+        {divider: 'gap-divider-13', texts: ['gap-text-13a', 'gap-text-13']},
+        {divider: 'gap-divider-15', texts: ['gap-text-15a', 'gap-text-15']},
+        {divider: 'gap-divider-17', texts: ['gap-text-17a', 'gap-text-17']}
+      ].forEach(function(group) {
+        var divider = document.getElementById(group.divider);
+        if (!divider) return;
+        var maxWidth = 0;
+        group.texts.forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) maxWidth = Math.max(maxWidth, el.getBoundingClientRect().width);
+        });
+        if (maxWidth > 0) divider.style.width = maxWidth + 'px';
+      });
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    (function () {
+      var SUPABASE_URL = 'https://epvmknxkquzzofedjrnt.supabase.co';
+      var SUPABASE_ANON_KEY = 'sb_publishable_iJrmj9yCPOl4QCa4VW4BEg_gw4m6OEI';
+      var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      function pad(n) { return String(n).padStart(2, '0'); }
+
+      function formatDate(iso) {
+        var d = new Date(iso);
+        return pad(d.getDate()) + '-' + pad(d.getMonth() + 1) + '-' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+      }
+
+      function renderMarker(pageEl, comment) {
+        var marker = document.createElement('div');
+        marker.className = 'comment-marker';
+        marker.style.left = comment.x + '%';
+        marker.style.top = comment.y + '%';
+        marker.dataset.id = comment.id;
+
+        var bubble = document.createElement('div');
+        bubble.className = 'comment-bubble hidden';
+        bubble.style.left = comment.x + '%';
+        bubble.style.top = comment.y + '%';
+        bubble.innerHTML = '<span class="comment-close">×</span>' +
+          '<div class="comment-date">' + formatDate(comment.created_at) + '</div>' +
+          '<div class="comment-text"></div>';
+        bubble.querySelector('.comment-text').textContent = comment.text;
+
+        marker.addEventListener('click', function (e) {
+          e.stopPropagation();
+          bubble.classList.toggle('hidden');
+        });
+
+        bubble.querySelector('.comment-close').addEventListener('click', function (e) {
+          e.stopPropagation();
+          if (confirm('Delete this comment?')) {
+            sb.from('comments').delete().eq('id', comment.id).then(function () {
+              marker.remove();
+              bubble.remove();
+            });
+          }
+        });
+
+        pageEl.appendChild(marker);
+        pageEl.appendChild(bubble);
+      }
+
+      function loadComments() {
+        sb.from('comments').select('*').order('created_at', { ascending: true }).then(function (res) {
+          if (res.error) { console.error(res.error); return; }
+          res.data.forEach(function (c) {
+            var pageEl = document.getElementById(c.page);
+            if (pageEl) renderMarker(pageEl, c);
+          });
+        });
+      }
+
+      function closeInputBox(box) {
+        if (box.parentNode) box.remove();
+      }
+
+      document.querySelectorAll('.page:not(.empty)').forEach(function (pageEl) {
+        pageEl.addEventListener('dblclick', function (e) {
+          if (e.target.closest('.comment-marker, .comment-bubble, .comment-input-box')) return;
+
+          var rect = pageEl.getBoundingClientRect();
+          var xPct = ((e.clientX - rect.left) / rect.width) * 100;
+          var yPct = ((e.clientY - rect.top) / rect.height) * 100;
+
+          var box = document.createElement('div');
+          box.className = 'comment-input-box';
+          box.style.left = xPct + '%';
+          box.style.top = yPct + '%';
+          box.innerHTML = '<textarea rows="3" placeholder="Add a comment..."></textarea>';
+          pageEl.appendChild(box);
+          var textarea = box.querySelector('textarea');
+          textarea.focus();
+
+          var saved = false;
+
+          textarea.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter' && !ev.shiftKey) {
+              ev.preventDefault();
+              var text = textarea.value.trim();
+              saved = true;
+              closeInputBox(box);
+              if (!text) return;
+              sb.from('comments').insert({
+                page: pageEl.id,
+                x: xPct,
+                y: yPct,
+                text: text
+              }).select().single().then(function (res) {
+                if (res.error) { console.error(res.error); alert('Could not save comment.'); return; }
+                renderMarker(pageEl, res.data);
+              });
+            } else if (ev.key === 'Escape') {
+              saved = true;
+              closeInputBox(box);
+            }
+          });
+
+          textarea.addEventListener('blur', function () {
+            setTimeout(function () { if (!saved) closeInputBox(box); }, 150);
+          });
+        });
+      });
+
+      loadComments();
+    })();
+  </script>
+</body>
+</html>
