@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Elegant Book</title>
 <style>
   @font-face {
@@ -47,6 +48,7 @@
     height: var(--page-h);
     background: var(--page-bg);
     position: relative;
+    touch-action: manipulation;
   }
 
   .page.empty {
@@ -466,50 +468,78 @@
         if (box.parentNode) box.remove();
       }
 
+      function openCommentInput(pageEl, clientX, clientY) {
+        if (pageEl.querySelector('.comment-input-box')) return;
+
+        var rect = pageEl.getBoundingClientRect();
+        var xPct = ((clientX - rect.left) / rect.width) * 100;
+        var yPct = ((clientY - rect.top) / rect.height) * 100;
+
+        var box = document.createElement('div');
+        box.className = 'comment-input-box';
+        box.style.left = xPct + '%';
+        box.style.top = yPct + '%';
+        box.innerHTML = '<textarea rows="3" placeholder="Add a comment..."></textarea>';
+        pageEl.appendChild(box);
+        var textarea = box.querySelector('textarea');
+        textarea.focus();
+
+        var saved = false;
+
+        textarea.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Enter' && !ev.shiftKey) {
+            ev.preventDefault();
+            var text = textarea.value.trim();
+            saved = true;
+            closeInputBox(box);
+            if (!text) return;
+            sb.from('comments').insert({
+              page: pageEl.id,
+              x: xPct,
+              y: yPct,
+              text: text
+            }).select().single().then(function (res) {
+              if (res.error) { console.error(res.error); alert('Could not save comment.'); return; }
+              renderMarker(pageEl, res.data);
+            });
+          } else if (ev.key === 'Escape') {
+            saved = true;
+            closeInputBox(box);
+          }
+        });
+
+        textarea.addEventListener('blur', function () {
+          setTimeout(function () { if (!saved) closeInputBox(box); }, 150);
+        });
+      }
+
       document.querySelectorAll('.page:not(.empty)').forEach(function (pageEl) {
         pageEl.addEventListener('dblclick', function (e) {
           if (e.target.closest('.comment-marker, .comment-bubble, .comment-input-box')) return;
+          openCommentInput(pageEl, e.clientX, e.clientY);
+        });
 
-          var rect = pageEl.getBoundingClientRect();
-          var xPct = ((e.clientX - rect.left) / rect.width) * 100;
-          var yPct = ((e.clientY - rect.top) / rect.height) * 100;
+        // Fallback double-tap detector for mobile browsers where native
+        // dblclick doesn't fire reliably from touch (touch-action:
+        // manipulation above handles suppressing the browser's zoom).
+        var lastTap = { time: 0, x: 0, y: 0 };
+        pageEl.addEventListener('touchend', function (e) {
+          if (e.target.closest('.comment-marker, .comment-bubble, .comment-input-box')) return;
+          if (e.changedTouches.length !== 1) return;
 
-          var box = document.createElement('div');
-          box.className = 'comment-input-box';
-          box.style.left = xPct + '%';
-          box.style.top = yPct + '%';
-          box.innerHTML = '<textarea rows="3" placeholder="Add a comment..."></textarea>';
-          pageEl.appendChild(box);
-          var textarea = box.querySelector('textarea');
-          textarea.focus();
+          var touch = e.changedTouches[0];
+          var now = Date.now();
+          var dx = touch.clientX - lastTap.x;
+          var dy = touch.clientY - lastTap.y;
+          var isDoubleTap = (now - lastTap.time) < 350 && Math.sqrt(dx * dx + dy * dy) < 30;
 
-          var saved = false;
-
-          textarea.addEventListener('keydown', function (ev) {
-            if (ev.key === 'Enter' && !ev.shiftKey) {
-              ev.preventDefault();
-              var text = textarea.value.trim();
-              saved = true;
-              closeInputBox(box);
-              if (!text) return;
-              sb.from('comments').insert({
-                page: pageEl.id,
-                x: xPct,
-                y: yPct,
-                text: text
-              }).select().single().then(function (res) {
-                if (res.error) { console.error(res.error); alert('Could not save comment.'); return; }
-                renderMarker(pageEl, res.data);
-              });
-            } else if (ev.key === 'Escape') {
-              saved = true;
-              closeInputBox(box);
-            }
-          });
-
-          textarea.addEventListener('blur', function () {
-            setTimeout(function () { if (!saved) closeInputBox(box); }, 150);
-          });
+          if (isDoubleTap) {
+            e.preventDefault();
+            openCommentInput(pageEl, touch.clientX, touch.clientY);
+            lastTap.time = 0;
+          } else {
+            lastTap = { time: now, x: touch.clientX, y: touch.clientY };
+          }
         });
       });
 
