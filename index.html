@@ -184,7 +184,6 @@
     line-height: 1.4;
     color: #2a2516;
     box-shadow: 0 3mm 8mm rgba(0,0,0,0.3);
-    margin: -22mm 0 0 11mm;
   }
 
   .comment-bubble.hidden {
@@ -220,7 +219,6 @@
     position: absolute;
     z-index: 30;
     width: 160mm;
-    margin: -22mm 0 0 -80mm;
   }
 
   .comment-input-box textarea {
@@ -370,6 +368,41 @@
         return pad(d.getDate()) + '-' + pad(d.getMonth() + 1) + '-' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
       }
 
+      var FLOAT_PAD = 10;
+      var FLOAT_OFFSET = 24;
+
+      function positionFloatingBox(pageEl, el, xPct, yPct) {
+        var pageRect = pageEl.getBoundingClientRect();
+        var spreadEl = pageEl.closest('.spread') || pageEl;
+        var spreadRect = spreadEl.getBoundingClientRect();
+
+        var anchorPxX = pageRect.width * (xPct / 100);
+        var anchorPxY = pageRect.height * (yPct / 100);
+
+        var boxWidth = el.offsetWidth;
+        var boxHeight = el.offsetHeight;
+
+        var left = anchorPxX + FLOAT_OFFSET;
+        if (pageRect.left + left + boxWidth > spreadRect.right - FLOAT_PAD) {
+          left = anchorPxX - FLOAT_OFFSET - boxWidth;
+        }
+        var minLeft = spreadRect.left - pageRect.left + FLOAT_PAD;
+        var maxLeft = spreadRect.right - pageRect.left - FLOAT_PAD - boxWidth;
+        if (maxLeft < minLeft) maxLeft = minLeft;
+        if (left < minLeft) left = minLeft;
+        if (left > maxLeft) left = maxLeft;
+
+        var top = anchorPxY - boxHeight / 2;
+        var minTop = spreadRect.top - pageRect.top + FLOAT_PAD;
+        var maxTop = spreadRect.bottom - pageRect.top - FLOAT_PAD - boxHeight;
+        if (maxTop < minTop) maxTop = minTop;
+        if (top < minTop) top = minTop;
+        if (top > maxTop) top = maxTop;
+
+        el.style.left = left + 'px';
+        el.style.top = top + 'px';
+      }
+
       function renderMarker(pageEl, comment) {
         var marker = document.createElement('div');
         marker.className = 'comment-marker';
@@ -379,8 +412,6 @@
 
         var bubble = document.createElement('div');
         bubble.className = 'comment-bubble hidden';
-        bubble.style.left = comment.x + '%';
-        bubble.style.top = comment.y + '%';
         bubble.innerHTML = '<span class="comment-close">×</span>' +
           '<div class="comment-date">' + formatDate(comment.created_at) + '</div>' +
           '<div class="comment-text"></div>';
@@ -388,7 +419,12 @@
 
         marker.addEventListener('click', function (e) {
           e.stopPropagation();
-          bubble.classList.toggle('hidden');
+          if (bubble.classList.contains('hidden')) {
+            bubble.classList.remove('hidden');
+            positionFloatingBox(pageEl, bubble, comment.x, comment.y);
+          } else {
+            bubble.classList.add('hidden');
+          }
         });
 
         bubble.querySelector('.comment-close').addEventListener('click', function (e) {
@@ -428,10 +464,9 @@
 
         var box = document.createElement('div');
         box.className = 'comment-input-box';
-        box.style.left = xPct + '%';
-        box.style.top = yPct + '%';
         box.innerHTML = '<textarea rows="3" placeholder="Přidat komentář..."></textarea>';
         pageEl.appendChild(box);
+        positionFloatingBox(pageEl, box, xPct, yPct);
         var textarea = box.querySelector('textarea');
         textarea.focus();
 
