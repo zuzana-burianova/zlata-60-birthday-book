@@ -14,9 +14,14 @@
 
   :root {
     --page-bg: #eee9c3;
-    --page-w: 210mm;
-    --page-h: 148mm;
-    --margin: 10mm;
+    /* the cut leaf: the 210 x 148 mm booklet page minus 6 mm left/right, 0.75 mm top/bottom */
+    --page-w: 198mm;
+    --page-h: 146.5mm;
+    --cut-x: 6mm;
+    --cut-y: 0.75mm;
+    /* 10 mm from the booklet page edge */
+    --margin-x: calc(10mm - var(--cut-x));
+    --margin-y: calc(10mm - var(--cut-y));
   }
 
   * { box-sizing: border-box; }
@@ -54,6 +59,8 @@
     height: var(--page-h);
     background: var(--page-bg);
     position: relative;
+    border-radius: 1mm;
+    overflow: hidden;
   }
 
   .page.empty {
@@ -63,15 +70,15 @@
 
   .page-content {
     position: absolute;
-    inset: var(--margin);
+    inset: var(--margin-y) var(--margin-x);
   }
 
   .page img.page-content {
     inset: auto;
-    top: var(--margin);
-    left: var(--margin);
-    width: calc(100% - 2 * var(--margin));
-    height: calc(100% - 2 * var(--margin));
+    top: var(--margin-y);
+    left: var(--margin-x);
+    width: calc(100% - 2 * var(--margin-x));
+    height: calc(100% - 2 * var(--margin-y));
   }
 
   .page img.cover {
@@ -155,7 +162,7 @@
 
   @media print {
     @page {
-      size: 420mm 148mm;
+      size: 396mm 146.5mm;
       margin: 0;
     }
     html, body { background: none; }
@@ -261,7 +268,7 @@
   </div>
 
   <div class="spread">
-    <div class="page" id="page-4"><img class="page-content house" src="house.png" alt=""></div>
+    <div class="page" id="page-4"><img class="page-content house" src="house.png" style="top:23.23mm;left:24.00mm;width:150.00mm;height:100.04mm;object-fit:fill" alt=""></div>
     <div class="page" id="page-5"><div class="page-content date-block">
       <div class="line">22.&nbsp;11.&nbsp;2026 <span class="circle">•</span> 19:00</div>
       <div class="gap-divider" id="gap-divider-5"><span class="divider-seg"></span><span class="circle">•</span><span class="divider-seg"></span></div>
@@ -272,7 +279,7 @@
   </div>
 
   <div class="spread">
-    <div class="page" id="page-6"><img class="page-content house" src="edinburgh.png" alt=""></div>
+    <div class="page" id="page-6"><img class="page-content house" src="edinburgh.png" style="top:23.23mm;left:24.00mm;width:150.00mm;height:100.04mm;object-fit:fill" alt=""></div>
     <div class="page" id="page-7"><div class="page-content date-block">
       <div class="line">4. – 7.&nbsp;12.&nbsp;2026</div>
       <div class="gap-divider" id="gap-divider-7"><span class="divider-seg"></span><span class="circle">•</span><span class="divider-seg"></span></div>
@@ -283,7 +290,7 @@
   </div>
 
   <div class="spread">
-    <div class="page" id="page-8"><img class="page-content house" src="montanie.png" alt=""></div>
+    <div class="page" id="page-8"><img class="page-content house" src="montanie.png" style="top:17.02mm;left:24.00mm;width:150.00mm;height:112.47mm;object-fit:fill" alt=""></div>
     <div class="page" id="page-9"><div class="page-content date-block">
       <div class="line">4. – 7.&nbsp;2.&nbsp;2027</div>
       <div class="gap-divider" id="gap-divider-9"><span class="divider-seg"></span><span class="circle">•</span><span class="divider-seg"></span></div>
@@ -294,7 +301,7 @@
   </div>
 
   <div class="spread">
-    <div class="page" id="page-10"><img class="page-content house" src="massage.png" alt=""></div>
+    <div class="page" id="page-10"><img class="page-content house" src="massage.png" style="top:23.23mm;left:24.00mm;width:150.00mm;height:100.04mm;object-fit:fill" alt=""></div>
     <div class="page" id="page-11"><div class="page-content date-block">
       <div class="line">Kdykoli během pobytu 4. – 7.&nbsp;2.&nbsp;2027</div>
       <div class="gap-divider" id="gap-divider-11"><span class="divider-seg"></span><span class="circle">•</span><span class="divider-seg"></span></div>
@@ -305,7 +312,7 @@
   </div>
 
   <div class="spread">
-    <div class="page" id="page-12"><img class="page-content house" src="kirkjufell.png" alt=""></div>
+    <div class="page" id="page-12"><img class="page-content house" src="kirkjufell.png" style="top:23.29mm;left:24.00mm;width:150.00mm;height:99.92mm;object-fit:fill" alt=""></div>
     <div class="page" id="page-13"><div class="page-content date-block">
       <div class="line">4. – 14.&nbsp;6.&nbsp;2027</div>
       <div class="gap-divider" id="gap-divider-13"><span class="divider-seg"></span><span class="circle">•</span><span class="divider-seg"></span></div>
@@ -316,7 +323,7 @@
   </div>
 
   <div class="spread">
-    <div class="page" id="page-14"><img class="page-content house" src="observatory.png" alt=""></div>
+    <div class="page" id="page-14"><img class="page-content house" src="observatory.png" style="top:18.94mm;left:23.99mm;width:152.98mm;height:108.62mm;object-fit:fill" alt=""></div>
     <div class="page" id="page-15"><div class="page-content date-block">
       <div class="line">termín dle dohody</div>
       <div class="gap-divider" id="gap-divider-15"><span class="divider-seg"></span><span class="circle">•</span><span class="divider-seg"></span></div>
@@ -334,7 +341,7 @@
       <div class="gap-blank"></div>
       <div class="line fit" id="gap-text-17">Užij si koupání v&nbsp;průzračném moři s&nbsp;bohatým podmořským životem, nech se hýčkat v&nbsp;hotelu přímo u&nbsp;moře, a&nbsp;uprostřed toho všeho si v&nbsp;zemi pyramid a&nbsp;faraonů naplno užij tajemný prožitek několik minut trvajícího úplného zatmění Slunce.</div>
     </div></div>
-    <div class="page" id="page-16"><img class="page-content house" src="eclipse.png" alt=""></div>
+    <div class="page" id="page-16"><img class="page-content house" src="eclipse.png" style="top:9.89mm;left:4.00mm;width:190.00mm;height:126.72mm;object-fit:fill" alt=""></div>
   </div>
 
   <div class="spread">
